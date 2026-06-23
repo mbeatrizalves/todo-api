@@ -1,0 +1,429 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-01-01T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app",
+  "resources": [
+    {
+      "_id": "wrk_todo_api",
+      "_type": "workspace",
+      "name": "Todo API",
+      "description": "Coleção de testes para a API de Gerenciamento de Tarefas",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_todo_api",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8000",
+        "token": ""
+      }
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_todo_api",
+      "name": "Autenticação"
+    },
+    {
+      "_id": "req_register",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "POST /api/register",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/register",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@email.com\",\n  \"password\": \"senha123456\",\n  \"password_confirmation\": \"senha123456\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "POST /api/login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"joao@email.com\",\n  \"password\": \"senha123456\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_login_seeder",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "POST /api/login (usuário do seeder)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"teste@exemplo.com\",\n  \"password\": \"senha123456\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_login_invalido",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "POST /api/login — credenciais inválidas (erro 401)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"naoexiste@email.com\",\n  \"password\": \"senhaerrada\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_logout",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "POST /api/logout",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/logout",
+      "body": { "mimeType": "application/json" },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "fld_categorias",
+      "_type": "request_group",
+      "parentId": "wrk_todo_api",
+      "name": "Categorias"
+    },
+    {
+      "_id": "req_categorias_index",
+      "_type": "request",
+      "parentId": "fld_categorias",
+      "name": "GET /api/categorias",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/categorias",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_categorias_store",
+      "_type": "request",
+      "parentId": "fld_categorias",
+      "name": "POST /api/categorias",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/categorias",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Trabalho\",\n  \"descricao\": \"Tarefas do trabalho\"\n}"
+      },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_categorias_store_sem_nome",
+      "_type": "request",
+      "parentId": "fld_categorias",
+      "name": "POST /api/categorias — sem nome (erro 422)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/categorias",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"descricao\": \"Sem nome\"\n}"
+      },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_categorias_show",
+      "_type": "request",
+      "parentId": "fld_categorias",
+      "name": "GET /api/categorias/{id}",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/categorias/1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_categorias_show_nao_autorizado",
+      "_type": "request",
+      "parentId": "fld_categorias",
+      "name": "GET /api/categorias/{id} — outro usuário (erro 404)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/categorias/999",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_categorias_update",
+      "_type": "request",
+      "parentId": "fld_categorias",
+      "name": "PUT /api/categorias/{id}",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/categorias/1",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Trabalho Remoto\",\n  \"descricao\": \"Atualizado\"\n}"
+      },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_categorias_destroy",
+      "_type": "request",
+      "parentId": "fld_categorias",
+      "name": "DELETE /api/categorias/{id}",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/categorias/1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_categorias_destroy_com_tarefas",
+      "_type": "request",
+      "parentId": "fld_categorias",
+      "name": "DELETE /api/categorias/{id} — com tarefas (erro 422)",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/categorias/1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "fld_tarefas",
+      "_type": "request_group",
+      "parentId": "wrk_todo_api",
+      "name": "Tarefas"
+    },
+    {
+      "_id": "req_tarefas_index",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "GET /api/tarefas",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/tarefas",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_tarefas_filter_status",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "GET /api/tarefas?status=pendente",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/tarefas?status=pendente",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_tarefas_filter_categoria",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "GET /api/tarefas?categoria_id=1",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/tarefas?categoria_id=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_tarefas_filter_ambos",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "GET /api/tarefas?status=pendente&categoria_id=1",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/tarefas?status=pendente&categoria_id=1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_tarefas_store",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "POST /api/tarefas",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/tarefas",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"titulo\": \"Revisar relatório\",\n  \"descricao\": \"Revisar o relatório trimestral\",\n  \"status\": \"pendente\",\n  \"prazo\": \"2025-12-31\",\n  \"categoria_id\": 1\n}"
+      },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_tarefas_store_categoria_alheia",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "POST /api/tarefas — categoria de outro usuário (erro 422)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/tarefas",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"titulo\": \"Tarefa inválida\",\n  \"categoria_id\": 9999\n}"
+      },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_tarefas_store_status_invalido",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "POST /api/tarefas — status inválido (erro 422)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/tarefas",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"titulo\": \"Tarefa teste\",\n  \"status\": \"invalido\",\n  \"categoria_id\": 1\n}"
+      },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_tarefas_show",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "GET /api/tarefas/{id}",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/tarefas/1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_tarefas_show_nao_autorizado",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "GET /api/tarefas/{id} — outro usuário (erro 404)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/tarefas/9999",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_tarefas_update",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "PUT /api/tarefas/{id}",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/tarefas/1",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"em_andamento\",\n  \"prazo\": \"2026-01-15\"\n}"
+      },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_tarefas_concluir",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "PUT /api/tarefas/{id} — marcar como concluida",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/tarefas/1",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"concluida\"\n}"
+      },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_tarefas_destroy",
+      "_type": "request",
+      "parentId": "fld_tarefas",
+      "name": "DELETE /api/tarefas/{id}",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/tarefas/1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "fld_erros",
+      "_type": "request_group",
+      "parentId": "wrk_todo_api",
+      "name": "Casos de Erro"
+    },
+    {
+      "_id": "req_sem_token",
+      "_type": "request",
+      "parentId": "fld_erros",
+      "name": "GET /api/categorias — sem token (erro 401)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/categorias",
+      "headers": [
+        { "name": "Accept", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_token_invalido",
+      "_type": "request",
+      "parentId": "fld_erros",
+      "name": "GET /api/categorias — token inválido (erro 401)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/categorias",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer token_invalido_aqui" },
+        { "name": "Accept", "value": "application/json" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo API — Painel</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f6fa;
+      --sidebar-bg: #1e2233;
+      --sidebar-text: #a8b2d8;
+      --sidebar-active: #fff;
+      --sidebar-accent: #6c63ff;
+      --card: #fff;
+      --border: #e2e8f0;
+      --text: #2d3748;
+      --muted: #718096;
+      --primary: #6c63ff;
+      --primary-dark: #5a52d5;
+      --danger: #e53e3e;
+      --success: #38a169;
+      --warning: #d69e2e;
+      --info: #3182ce;
+      --console-bg: #0d1117;
+      --console-text: #c9d1d9;
+      --get-color: #58a6ff;
+      --post-color: #3fb950;
+      --put-color: #d29922;
+      --delete-color: #f85149;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 200px;
+      min-width: 200px;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+    }
+
+    #sidebar h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      padding: 20px 16px 12px;
+      letter-spacing: .5px;
+      border-bottom: 1px solid #2d3555;
+    }
+
+    #sidebar h1 span { color: var(--sidebar-accent); }
+
+    .nav-section { padding: 12px 0 4px; }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #4a5568;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0 16px 6px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--sidebar-text);
+      font-size: 13px;
+      padding: 9px 16px;
+      cursor: pointer;
+      transition: all .15s;
+      text-align: left;
+    }
+    .nav-btn:hover { background: #252b45; color: #fff; }
+    .nav-btn.active { background: var(--sidebar-accent); color: #fff; }
+    .nav-btn .icon { font-size: 15px; width: 20px; text-align: center; }
+
+    #auth-status {
+      margin-top: auto;
+      padding: 12px 16px;
+      border-top: 1px solid #2d3555;
+      font-size: 11px;
+      color: #4a5568;
+    }
+    #auth-status .user-info { color: #68d391; font-weight: 600; font-size: 12px; margin-bottom: 4px; }
+    #auth-status .token-preview { word-break: break-all; font-family: monospace; font-size: 10px; color: #4a5568; }
+
+    /* ── Main layout ── */
+    #layout {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #topbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    #topbar .page-title { font-size: 16px; font-weight: 600; }
+    #topbar .actions { display: flex; gap: 8px; align-items: center; }
+
+    #content-area {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    #main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    /* ── Cards / Sections ── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+
+    /* ── Forms ── */
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 180px; }
+    .form-group label { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .form-group input, .form-group select, .form-group textarea {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color .15s;
+      background: #fff;
+      color: var(--text);
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--primary);
+    }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:hover { opacity: .88; }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-danger  { background: var(--danger);  color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-full { width: 100%; justify-content: center; }
+
+    /* ── Alerts ── */
+    .alert {
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .alert.show { display: block; }
+    .alert-error { background: #fff5f5; border: 1px solid #feb2b2; color: var(--danger); }
+    .alert-success { background: #f0fff4; border: 1px solid #9ae6b4; color: var(--success); }
+
+    /* ── Table / List ── */
+    .item-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .item-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .item-card .item-body { flex: 1; }
+    .item-card .item-title { font-size: 14px; font-weight: 600; }
+    .item-card .item-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .item-card .item-actions { display: flex; gap: 6px; }
+
+    /* ── Status badges ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+    .badge-pendente    { background: #fff3cd; color: #856404; }
+    .badge-em_andamento { background: #cfe2ff; color: #084298; }
+    .badge-concluida   { background: #d1e7dd; color: #0a3622; }
+
+    /* ── Filters ── */
+    .filters {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .filters .form-group { min-width: 140px; flex: 0; }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 40px 20px;
+      font-size: 14px;
+    }
+
+    /* ── Loading ── */
+    .loading { opacity: .5; pointer-events: none; }
+
+    /* ── API Console ── */
+    #api-console {
+      width: 380px;
+      min-width: 380px;
+      background: var(--console-bg);
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid #30363d;
+    }
+
+    #console-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #console-header span { font-size: 12px; font-weight: 700; color: #8b949e; letter-spacing: .5px; text-transform: uppercase; }
+    #console-clear { background: none; border: none; color: #6e7681; font-size: 12px; cursor: pointer; }
+    #console-clear:hover { color: #c9d1d9; }
+
+    #console-log {
+      flex: 1;
+      overflow-y: auto;
+      font-family: 'Fira Code', 'Courier New', monospace;
+      font-size: 11.5px;
+    }
+
+    .log-entry {
+      border-bottom: 1px solid #161b22;
+      padding: 10px 14px;
+    }
+
+    .log-entry .log-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .method-tag {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: .5px;
+    }
+    .method-GET    { background: #0d419d; color: var(--get-color); }
+    .method-POST   { background: #033a16; color: var(--post-color); }
+    .method-PUT    { background: #3d2b00; color: var(--put-color); }
+    .method-DELETE { background: #3d0e0e; color: var(--delete-color); }
+
+    .log-url { color: #c9d1d9; font-size: 11px; flex: 1; word-break: break-all; }
+    .log-status { font-size: 11px; font-weight: 700; margin-left: auto; }
+    .status-ok  { color: var(--post-color); }
+    .status-err { color: var(--delete-color); }
+
+    .log-section { margin-top: 5px; }
+    .log-label { font-size: 10px; color: #6e7681; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
+    .log-body {
+      background: #161b22;
+      border-radius: 4px;
+      padding: 6px 8px;
+      color: #e6edf3;
+      font-size: 11px;
+      max-height: 120px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .log-time { font-size: 10px; color: #6e7681; margin-top: 4px; }
+
+    /* ── Toggle console ── */
+    #toggle-console {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 18px;
+      cursor: pointer;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(108,99,255,.4);
+    }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+    .tab-btn {
+      padding: 8px 20px;
+      border: none;
+      background: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all .15s;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.4);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 24px;
+      width: 460px;
+      max-width: 95vw;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .modal h3 { font-size: 16px; margin-bottom: 18px; }
+    .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav id="sidebar">
+  <h1>Todo <span>API</span></h1>
+
+  <div class="nav-section">
+    <div class="nav-label">Conta</div>
+    <button class="nav-btn active" onclick="showSection('auth')" id="nav-auth">
+      <span class="icon">🔐</span> Autenticação
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Recursos</div>
+    <button class="nav-btn" onclick="showSection('categorias')" id="nav-categorias">
+      <span class="icon">📁</span> Categorias
+    </button>
+    <button class="nav-btn" onclick="showSection('tarefas')" id="nav-tarefas">
+      <span class="icon">✅</span> Tarefas
+    </button>
+  </div>
+
+  <div id="auth-status">
+    <div id="status-logged-out" style="color:#4a5568;font-size:12px;">Não autenticado</div>
+    <div id="status-logged-in" style="display:none">
+      <div class="user-info" id="status-user-name"></div>
+      <div class="token-preview" id="status-token-preview"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- Layout principal -->
+<div id="layout">
+  <div id="topbar">
+    <span class="page-title" id="page-title">Autenticação</span>
+    <div class="actions">
+      <span id="topbar-user" style="font-size:12px;color:#718096;display:none"></span>
+      <button class="btn btn-ghost btn-sm" id="btn-logout" style="display:none" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <div id="content-area">
+    <div id="main">
+
+      <!-- ═══════════════════ AUTH ═══════════════════ -->
+      <div class="section active" id="section-auth">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+          <button class="tab-btn" onclick="switchTab('register')">Cadastro</button>
+        </div>
+
+        <!-- Login -->
+        <div id="tab-login">
+          <div class="card">
+            <h2>Fazer login</h2>
+            <div id="alert-login" class="alert"></div>
+            <div class="form-group" style="margin-bottom:12px">
+              <label>E-mail</label>
+              <input type="email" id="login-email" placeholder="teste@exemplo.com" value="teste@exemplo.com">
+            </div>
+            <div class="form-group" style="margin-bottom:16px">
+              <label>Senha</label>
+              <input type="password" id="login-password" placeholder="senha123456" value="senha123456">
+            </div>
+            <button class="btn btn-primary btn-full" onclick="login()">Entrar — POST /api/login</button>
+          </div>
+        </div>
+
+        <!-- Register -->
+        <div id="tab-register" style="display:none">
+          <div class="card">
+            <h2>Criar conta</h2>
+            <div id="alert-register" class="alert"></div>
+            <div class="form-row" style="margin-bottom:12px">
+              <div class="form-group">
+                <label>Nome</label>
+                <input type="text" id="reg-name" placeholder="Seu nome">
+              </div>
+              <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="reg-email" placeholder="email@exemplo.com">
+              </div>
+            </div>
+            <div class="form-row" style="margin-bottom:16px">
+              <div class="form-group">
+                <label>Senha</label>
+                <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres">
+              </div>
+              <div class="form-group">
+                <label>Confirmar senha</label>
+                <input type="password" id="reg-password-confirm" placeholder="Repita a senha">
+              </div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="register()">Cadastrar — POST /api/register</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ CATEGORIAS ═══════════════════ -->
+      <div class="section" id="section-categorias">
+        <div class="card">
+          <h2>Nova Categoria — POST /api/categorias</h2>
+          <div id="alert-cat" class="alert"></div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group">
+              <label>Nome *</label>
+              <input type="text" id="cat-nome" placeholder="Ex: Trabalho">
+            </div>
+            <div class="form-group">
+              <label>Descrição</label>
+              <input type="text" id="cat-desc" placeholder="Opcional">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="criarCategoria()">+ Criar Categoria</button>
+          <button class="btn btn-ghost" onclick="listarCategorias()" style="margin-left:8px">↻ Atualizar lista</button>
+        </div>
+
+        <div id="lista-categorias" class="item-list"></div>
+      </div>
+
+      <!-- ═══════════════════ TAREFAS ═══════════════════ -->
+      <div class="section" id="section-tarefas">
+        <div class="card">
+          <h2>Nova Tarefa — POST /api/tarefas</h2>
+          <div id="alert-tar" class="alert"></div>
+          <div class="form-row" style="margin-bottom:12px">
+            <div class="form-group" style="flex:2">
+              <label>Título *</label>
+              <input type="text" id="tar-titulo" placeholder="Ex: Estudar Laravel">
+            </div>
+            <div class="form-group">
+              <label>Categoria *</label>
+              <select id="tar-categoria">
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:12px">
+            <div class="form-group" style="flex:2">
+              <label>Descrição</label>
+              <input type="text" id="tar-desc" placeholder="Opcional">
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select id="tar-status">
+                <option value="pendente">Pendente</option>
+                <option value="em_andamento">Em andamento</option>
+                <option value="concluida">Concluída</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Prazo</label>
+              <input type="date" id="tar-prazo">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="criarTarefa()">+ Criar Tarefa</button>
+          <button class="btn btn-ghost" onclick="listarTarefas()" style="margin-left:8px">↻ Atualizar lista</button>
+        </div>
+
+        <div class="filters">
+          <div class="form-group">
+            <label>Filtrar por status</label>
+            <select id="filtro-status" onchange="listarTarefas()">
+              <option value="">Todos</option>
+              <option value="pendente">Pendente</option>
+              <option value="em_andamento">Em andamento</option>
+              <option value="concluida">Concluída</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Filtrar por categoria</label>
+            <select id="filtro-categoria" onchange="listarTarefas()">
+              <option value="">Todas</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="lista-tarefas" class="item-list"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ API Console ═══════════════════ -->
+    <div id="api-console">
+      <div id="console-header">
+        <span>📡 API Console</span>
+        <button id="console-clear" onclick="limparConsole()">limpar</button>
+      </div>
+      <div id="console-log">
+        <div style="padding:20px 14px;color:#6e7681;font-size:12px;font-family:monospace;">
+          As chamadas à API aparecerão aqui em tempo real...
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Categoria -->
+<div class="modal-overlay" id="modal-cat">
+  <div class="modal">
+    <h3>Editar Categoria — PUT /api/categorias/{id}</h3>
+    <input type="hidden" id="edit-cat-id">
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Nome *</label>
+      <input type="text" id="edit-cat-nome">
+    </div>
+    <div class="form-group" style="margin-bottom:4px">
+      <label>Descrição</label>
+      <input type="text" id="edit-cat-desc">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-cat')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCategoria()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Tarefa -->
+<div class="modal-overlay" id="modal-tar">
+  <div class="modal">
+    <h3>Editar Tarefa — PUT /api/tarefas/{id}</h3>
+    <input type="hidden" id="edit-tar-id">
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Título *</label>
+      <input type="text" id="edit-tar-titulo">
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Descrição</label>
+      <input type="text" id="edit-tar-desc">
+    </div>
+    <div class="form-row" style="margin-bottom:12px">
+      <div class="form-group">
+        <label>Status</label>
+        <select id="edit-tar-status">
+          <option value="pendente">Pendente</option>
+          <option value="em_andamento">Em andamento</option>
+          <option value="concluida">Concluída</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Prazo</label>
+        <input type="date" id="edit-tar-prazo">
+      </div>
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="edit-tar-categoria"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-tar')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarTarefa()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const BASE = '/api';
+  let token = localStorage.getItem('todo_token') || null;
+  let currentUser = JSON.parse(localStorage.getItem('todo_user') || 'null');
+  let categorias = [];
+
+  // ════════════════════════════════════════
+  // API Helper
+  // ════════════════════════════════════════
+  async function api(method, path, body = null) {
+    const url = BASE + path;
+    const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
+    const opts = { method, headers };
+    if (body) opts.body = JSON.stringify(body);
+
+    const start = Date.now();
+    let res, data;
+    try {
+      res  = await fetch(url, opts);
+      data = await res.json();
+    } catch (e) {
+      data = { message: e.message };
+    }
+
+    logConsole(method, url, body, res?.status, data, Date.now() - start);
+    return { status: res?.status, data };
+  }
+
+  // ════════════════════════════════════════
+  // Console
+  // ════════════════════════════════════════
+  function logConsole(method, url, reqBody, status, resBody, ms) {
+    const log = document.getElementById('console-log');
+
+    // Remove placeholder
+    const placeholder = log.querySelector('div[style]');
+    if (placeholder) placeholder.remove();
+
+    const ok = status >= 200 && status < 300;
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+
+    const reqJson  = reqBody  ? JSON.stringify(reqBody, null, 2)  : null;
+    const resJson  = resBody  ? JSON.stringify(resBody, null, 2)  : '';
+    const shortUrl = url.replace(window.location.origin, '');
+
+    entry.innerHTML = `
+      <div class="log-top">
+        <span class="method-tag method-${method}">${method}</span>
+        <span class="log-url">${shortUrl}</span>
+        <span class="log-status ${ok ? 'status-ok' : 'status-err'}">${status ?? '??'}</span>
+      </div>
+      ${reqJson ? `<div class="log-section"><div class="log-label">Request body</div><div class="log-body">${escHtml(reqJson)}</div></div>` : ''}
+      <div class="log-section"><div class="log-label">Response</div><div class="log-body">${escHtml(resJson)}</div></div>
+      <div class="log-time">${new Date().toLocaleTimeString('pt-BR')} · ${ms}ms</div>
+    `;
+
+    log.insertBefore(entry, log.firstChild);
+  }
+
+  function formatarData(str) {
+    if (!str) return null;
+    // Pega só a parte YYYY-MM-DD e formata como DD/MM/AAAA
+    const [y, m, d] = str.substring(0, 10).split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function limparConsole() {
+    document.getElementById('console-log').innerHTML =
+      '<div style="padding:20px 14px;color:#6e7681;font-size:12px;font-family:monospace;">Console limpo.</div>';
+  }
+
+  // ════════════════════════════════════════
+  // UI helpers
+  // ════════════════════════════════════════
+  function showSection(name) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('section-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    const titles = { auth: 'Autenticação', categorias: 'Categorias', tarefas: 'Tarefas' };
+    document.getElementById('page-title').textContent = titles[name];
+
+    if (name === 'categorias') listarCategorias();
+    if (name === 'tarefas')    { listarTarefas(); carregarCategoriasSelect(); }
+  }
+
+  function switchTab(tab) {
+    document.getElementById('tab-login').style.display    = tab === 'login'    ? 'block' : 'none';
+    document.getElementById('tab-register').style.display = tab === 'register' ? 'block' : 'none';
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+    });
+  }
+
+  function showAlert(id, type, msg) {
+    const el = document.getElementById(id);
+    el.className = `alert alert-${type} show`;
+    el.textContent = msg;
+    setTimeout(() => el.classList.remove('show'), 4000);
+  }
+
+  function abrirModal(id) { document.getElementById(id).classList.add('show'); }
+  function fecharModal(id) { document.getElementById(id).classList.remove('show'); }
+
+  function updateAuthUI() {
+    const loggedIn = !!token;
+    document.getElementById('status-logged-out').style.display = loggedIn ? 'none' : 'block';
+    document.getElementById('status-logged-in').style.display  = loggedIn ? 'block' : 'none';
+    document.getElementById('btn-logout').style.display        = loggedIn ? 'inline-flex' : 'none';
+    document.getElementById('topbar-user').style.display       = loggedIn ? 'inline' : 'none';
+
+    if (loggedIn && currentUser) {
+      document.getElementById('status-user-name').textContent    = currentUser.name;
+      document.getElementById('status-token-preview').textContent = token.substring(0, 30) + '...';
+      document.getElementById('topbar-user').textContent          = currentUser.email;
+    }
+  }
+
+  // ════════════════════════════════════════
+  // AUTH
+  // ════════════════════════════════════════
+  async function login() {
+    const email    = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    const { status, data } = await api('POST', '/login', { email, password });
+
+    if (status === 200) {
+      token = data.data.token;
+      currentUser = data.data.user;
+      localStorage.setItem('todo_token', token);
+      localStorage.setItem('todo_user', JSON.stringify(currentUser));
+      updateAuthUI();
+      showAlert('alert-login', 'success', 'Login realizado! Explore as seções de Categorias e Tarefas.');
+    } else {
+      showAlert('alert-login', 'error', data.message || 'Erro ao fazer login.');
+    }
+  }
+
+  async function register() {
+    const name              = document.getElementById('reg-name').value;
+    const email             = document.getElementById('reg-email').value;
+    const password          = document.getElementById('reg-password').value;
+    const password_confirmation = document.getElementById('reg-password-confirm').value;
+
+    const { status, data } = await api('POST', '/register', { name, email, password, password_confirmation });
+
+    if (status === 201) {
+      token = data.data.token;
+      currentUser = data.data.user;
+      localStorage.setItem('todo_token', token);
+      localStorage.setItem('todo_user', JSON.stringify(currentUser));
+      updateAuthUI();
+      showAlert('alert-register', 'success', 'Conta criada com sucesso!');
+    } else {
+      const erros = data.errors ? Object.values(data.errors).flat().join(' ') : data.message;
+      showAlert('alert-register', 'error', erros);
+    }
+  }
+
+  async function logout() {
+    await api('POST', '/logout');
+    token = null;
+    currentUser = null;
+    localStorage.removeItem('todo_token');
+    localStorage.removeItem('todo_user');
+    updateAuthUI();
+    showSection('auth');
+  }
+
+  // ════════════════════════════════════════
+  // CATEGORIAS
+  // ════════════════════════════════════════
+  async function listarCategorias() {
+    const { status, data } = await api('GET', '/categorias');
+    const container = document.getElementById('lista-categorias');
+
+    if (status !== 200) {
+      container.innerHTML = `<div class="empty">Erro ao carregar categorias. Faça login primeiro.</div>`;
+      return;
+    }
+
+    categorias = data.data;
+    if (!categorias.length) {
+      container.innerHTML = `<div class="empty">Nenhuma categoria cadastrada ainda.</div>`;
+      return;
+    }
+
+    container.innerHTML = categorias.map(c => `
+      <div class="item-card">
+        <div class="item-body">
+          <div class="item-title">📁 ${escHtml(c.nome)}</div>
+          <div class="item-meta">${c.descricao || '—'} · ${c.tarefas_count ?? '?'} tarefa(s)</div>
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-ghost btn-sm" onclick="abrirEditarCategoria(${c.id},'${escHtml(c.nome)}','${escHtml(c.descricao||'')}')">✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="excluirCategoria(${c.id})">🗑️ Excluir</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function criarCategoria() {
+    const nome     = document.getElementById('cat-nome').value;
+    const descricao = document.getElementById('cat-desc').value;
+
+    const { status, data } = await api('POST', '/categorias', { nome, descricao });
+
+    if (status === 201) {
+      document.getElementById('cat-nome').value = '';
+      document.getElementById('cat-desc').value = '';
+      showAlert('alert-cat', 'success', 'Categoria criada!');
+      listarCategorias();
+    } else {
+      const erros = data.errors ? Object.values(data.errors).flat().join(' ') : data.message;
+      showAlert('alert-cat', 'error', erros);
+    }
+  }
+
+  function abrirEditarCategoria(id, nome, descricao) {
+    document.getElementById('edit-cat-id').value   = id;
+    document.getElementById('edit-cat-nome').value  = nome;
+    document.getElementById('edit-cat-desc').value  = descricao;
+    abrirModal('modal-cat');
+  }
+
+  async function salvarCategoria() {
+    const id       = document.getElementById('edit-cat-id').value;
+    const nome     = document.getElementById('edit-cat-nome').value;
+    const descricao = document.getElementById('edit-cat-desc').value;
+
+    const { status, data } = await api('PUT', '/categorias/' + id, { nome, descricao });
+
+    if (status === 200) {
+      fecharModal('modal-cat');
+      listarCategorias();
+    } else {
+      alert(data.message || 'Erro ao atualizar.');
+    }
+  }
+
+  async function excluirCategoria(id) {
+    if (!confirm('Excluir esta categoria?')) return;
+
+    const { status, data } = await api('DELETE', '/categorias/' + id);
+
+    if (status === 200) {
+      listarCategorias();
+    } else {
+      alert(data.message || 'Erro ao excluir.');
+    }
+  }
+
+  async function carregarCategoriasSelect() {
+    if (!categorias.length) {
+      const { data } = await api('GET', '/categorias');
+      categorias = data.data || [];
+    }
+
+    const selects = ['tar-categoria', 'filtro-categoria', 'edit-tar-categoria'];
+    selects.forEach(id => {
+      const el = document.getElementById(id);
+      const isFilter = id === 'filtro-categoria';
+      el.innerHTML = isFilter ? '<option value="">Todas</option>' : '<option value="">Selecione...</option>';
+      categorias.forEach(c => {
+        el.innerHTML += `<option value="${c.id}">${escHtml(c.nome)}</option>`;
+      });
+    });
+  }
+
+  // ════════════════════════════════════════
+  // TAREFAS
+  // ════════════════════════════════════════
+  async function listarTarefas() {
+    const status    = document.getElementById('filtro-status').value;
+    const catId     = document.getElementById('filtro-categoria').value;
+    let qs = [];
+    if (status) qs.push('status=' + status);
+    if (catId)  qs.push('categoria_id=' + catId);
+
+    const path = '/tarefas' + (qs.length ? '?' + qs.join('&') : '');
+    const { status: httpStatus, data } = await api('GET', path);
+    const container = document.getElementById('lista-tarefas');
+
+    if (httpStatus !== 200) {
+      container.innerHTML = `<div class="empty">Erro ao carregar tarefas. Faça login primeiro.</div>`;
+      return;
+    }
+
+    const tarefas = data.data;
+    if (!tarefas.length) {
+      container.innerHTML = `<div class="empty">Nenhuma tarefa encontrada com esses filtros.</div>`;
+      return;
+    }
+
+    container.innerHTML = tarefas.map(t => `
+      <div class="item-card">
+        <div class="item-body">
+          <div class="item-title">
+            ✅ ${escHtml(t.titulo)}
+            <span class="badge badge-${t.status}">${t.status.replace('_',' ')}</span>
+          </div>
+          <div class="item-meta">
+            📁 ${t.categoria ? escHtml(t.categoria.nome) : '—'}
+            ${t.prazo ? ' · 📅 ' + formatarData(t.prazo) : ''}
+            ${t.descricao ? ' · ' + escHtml(t.descricao) : ''}
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="btn btn-ghost btn-sm" onclick='abrirEditarTarefa(${JSON.stringify(t)})'>✏️ Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="excluirTarefa(${t.id})">🗑️ Excluir</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function criarTarefa() {
+    const body = {
+      titulo:       document.getElementById('tar-titulo').value,
+      descricao:    document.getElementById('tar-desc').value || undefined,
+      status:       document.getElementById('tar-status').value,
+      prazo:        document.getElementById('tar-prazo').value || undefined,
+      categoria_id: parseInt(document.getElementById('tar-categoria').value),
+    };
+
+    const { status, data } = await api('POST', '/tarefas', body);
+
+    if (status === 201) {
+      document.getElementById('tar-titulo').value = '';
+      document.getElementById('tar-desc').value   = '';
+      document.getElementById('tar-prazo').value  = '';
+      showAlert('alert-tar', 'success', 'Tarefa criada!');
+      listarTarefas();
+    } else {
+      const erros = data.errors ? Object.values(data.errors).flat().join(' ') : data.message;
+      showAlert('alert-tar', 'error', erros);
+    }
+  }
+
+  function abrirEditarTarefa(t) {
+    document.getElementById('edit-tar-id').value       = t.id;
+    document.getElementById('edit-tar-titulo').value   = t.titulo;
+    document.getElementById('edit-tar-desc').value     = t.descricao || '';
+    document.getElementById('edit-tar-status').value   = t.status;
+    document.getElementById('edit-tar-prazo').value    = t.prazo ? t.prazo.substring(0, 10) : '';
+    carregarCategoriasSelect().then(() => {
+      document.getElementById('edit-tar-categoria').value = t.categoria_id;
+    });
+    abrirModal('modal-tar');
+  }
+
+  async function salvarTarefa() {
+    const id = document.getElementById('edit-tar-id').value;
+    const body = {
+      titulo:       document.getElementById('edit-tar-titulo').value,
+      descricao:    document.getElementById('edit-tar-desc').value || undefined,
+      status:       document.getElementById('edit-tar-status').value,
+      prazo:        document.getElementById('edit-tar-prazo').value || undefined,
+      categoria_id: parseInt(document.getElementById('edit-tar-categoria').value),
+    };
+
+    const { status, data } = await api('PUT', '/tarefas/' + id, body);
+
+    if (status === 200) {
+      fecharModal('modal-tar');
+      listarTarefas();
+    } else {
+      alert(data.message || 'Erro ao atualizar.');
+    }
+  }
+
+  async function excluirTarefa(id) {
+    if (!confirm('Excluir esta tarefa?')) return;
+
+    const { status, data } = await api('DELETE', '/tarefas/' + id);
+    if (status === 200) listarTarefas();
+    else alert(data.message || 'Erro ao excluir.');
+  }
+
+  // ════════════════════════════════════════
+  // Init
+  // ════════════════════════════════════════
+  updateAuthUI();
+
+  // Fechar modal clicando fora
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+</script>
+</body>
+</html>
