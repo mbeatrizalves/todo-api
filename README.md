@@ -250,7 +250,15 @@ Resposta `201`:
   "prazo": "2026-01-15"
 }
 ```
+---
+### Relatórios (Visualização Web)
 
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/exportar-pdf?token=SEU_TOKEN` | Gera e exibe o histórico de tarefas do usuário logado em formato PDF |
+
+#### GET /exportar-pdf
+Esta rota valida o token enviado como parâmetro na URL para autenticar o usuário e retornar o stream do arquivo diretamente no navegador.
 ---
 
 ### Erros comuns
@@ -316,5 +324,5 @@ Após rodar `php artisan db:seed`, o banco terá:
 - **Notificações por e-mail** quando uma tarefa se aproximar do prazo
 - **Subtarefas** (relacionamento recursivo em Tarefa)
 - **Compartilhamento de listas** entre usuários
-- **Exportação** de tarefas para CSV/PDF
+- **Exportação** de tarefas para CSV
 - **Refresh token** para renovação automática da sessão
